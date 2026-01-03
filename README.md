@@ -11,7 +11,7 @@ This project demonstrates how **agentic AI systems** can be applied to real-worl
 
 Audit and compliance workflows in banks and enterprises are:
 
-* Manual and time-consuming
+* Manual and Time-consuming
 * Expensive to scale
 * Difficult to audit and explain
 * Dependent on human interpretation of complex policy documents
