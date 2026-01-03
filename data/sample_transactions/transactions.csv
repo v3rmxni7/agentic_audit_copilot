@@ -1,0 +1,4 @@
+transaction_id,account_id,amount,currency,timestamp,transaction_type,counterparty,kyc_verified
+TXN001,ACC001,5000,INR,2024-01-01T10:00:00,TRANSFER,VendorA,true
+TXN002,ACC002,15000,INR,2024-01-02T11:30:00,TRANSFER,VendorB,false
+TXN003,ACC003,25000,INR,2024-01-03T09:15:00,TRANSFER,VendorC,true

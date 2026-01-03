@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agentic Audit Copilot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+  <div class="max-w-5xl mx-auto py-10 px-6">
+
+    <!-- HEADER -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-slate-800">
+        Agentic Audit Copilot
+      </h1>
+      <p class="text-slate-600 mt-2">
+        Automated compliance analysis using agentic AI
+      </p>
+    </div>
+
+    <!-- INPUT CARD -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Audit Inputs</h2>
+
+      <label class="block font-medium mb-1">Policy Text</label>
+      <textarea
+        id="policy"
+        class="w-full border rounded p-3 mb-4 text-sm"
+        rows="5"
+      >Any transaction above 10000 INR must have KYC verification.
+Failure to comply is considered high risk.</textarea>
+
+      <label class="block font-medium mb-1">Transaction CSV</label>
+      <input type="file" id="file" class="mb-4" />
+
+      <button
+        onclick="runAudit()"
+        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+      >
+        Run Audit
+      </button>
+    </div>
+
+    <!-- OUTPUT CARD -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Audit Report</h2>
+
+      <div id="loading" class="hidden text-slate-500 mb-3">
+        Running audit… please wait
+      </div>
+
+      <div id="report" class="space-y-4"></div>
+    </div>
+
+  </div>
+
+<script>
+async function runAudit() {
+  const policy = document.getElementById("policy").value;
+  const fileInput = document.getElementById("file");
+  const reportDiv = document.getElementById("report");
+  const loadingDiv = document.getElementById("loading");
+
+  if (!fileInput.files.length) {
+    alert("Please upload a transaction CSV");
+    return;
+  }
+
+  reportDiv.innerHTML = "";
+  loadingDiv.classList.remove("hidden");
+
+  const formData = new FormData();
+  formData.append("policy_text", policy);
+  formData.append("transactions_file", fileInput.files[0]);
+
+  let response;
+  try {
+    response = await fetch("/api/run-audit", {
+      method: "POST",
+      body: formData
+    });
+  } catch (err) {
+    loadingDiv.classList.add("hidden");
+    reportDiv.innerHTML =
+      "<p class='text-red-600'>Network error. Backend not reachable.</p>";
+    return;
+  }
+
+  loadingDiv.classList.add("hidden");
+
+  if (!response.ok) {
+    const errText = await response.text();
+    reportDiv.innerHTML = `
+      <p class="text-red-600 font-semibold">Audit failed</p>
+      <pre class="text-sm bg-gray-100 p-3 rounded whitespace-pre-wrap">${errText}</pre>
+    `;
+    return;
+  }
+
+  const data = await response.json();
+  renderReport(data);
+}
+
+function renderReport(report) {
+  const div = document.getElementById("report");
+
+  const totalTx = report.total_transactions ?? "N/A";
+  const flagged = report.total_flagged ?? "N/A";
+  const summary = report.summary ?? "No summary available";
+
+  div.innerHTML = `
+    <p><strong>Total Transactions:</strong> ${totalTx}</p>
+    <p><strong>Flagged:</strong> ${flagged}</p>
+    <p class="italic text-slate-600">${summary}</p>
+  `;
+
+  if (!Array.isArray(report.findings)) {
+    return;
+  }
+
+  report.findings.forEach(f => {
+    div.innerHTML += `
+      <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded">
+        <p><strong>Transaction:</strong> ${f.transaction_id}</p>
+        <p><strong>Rule:</strong> ${f.rule_id}</p>
+        <p><strong>Risk:</strong> ${f.risk_level}</p>
+        <p class="mt-2 text-sm">${f.explanation}</p>
+      </div>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>
