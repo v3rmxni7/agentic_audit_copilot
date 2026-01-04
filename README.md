@@ -50,6 +50,8 @@ This is **not a chatbot** — it is a decision-making system.
 
 ## System Architecture
 
+<img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/25c02a7f-ea71-41cb-b5a7-efa287d61a63" />
+
 ```
 Policy Text / Documents
         ↓
